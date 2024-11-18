@@ -1,31 +1,64 @@
 DELIMITER $$
-CREATE DEFINER=`root`@`localhost` PROCEDURE `addCustomer`(IN `p_customerName` VARCHAR(50), IN `p_contactLastName` VARCHAR(50), IN `p_phone` VARCHAR(50), IN `p_addressLine1` VARCHAR(50), IN `p_addressLine2` VARCHAR(50), IN `p_city` VARCHAR(50), IN `p_state` VARCHAR(50), IN `p_postalCode` VARCHAR(15), IN `p_country` VARCHAR(50), IN `p_creditLimit` DECIMAL(10,0), IN `p_email` VARCHAR(50), IN `p_password` VARCHAR(200), IN `p_contactFirstName` VARCHAR(50))
+CREATE DEFINER=`root`@`localhost` PROCEDURE `add_to_shopping_cart`(IN `p_session_id` VARCHAR(255), IN `p_productCode` VARCHAR(15), IN `p_qty` INT, IN `p_price` FLOAT(6,2), IN `p_productName` VARCHAR(50))
 BEGIN
-INSERT INTO customers(
-customerName, contactLastName, contactFirstName, phone,
-addressLine1, addressLine2, city, state, postalCode, country, creditLimit, email, password
-)
-
-VALUES(
-p_customerName, p_contactLastName, p_contactFirstName, p_phone, p_addressLine1, p_addressLine2, p_city, p_state, p_postalCode, 
-    p_country, p_creditLimit, p_email, p_password
-)
-
-;
+INSERT INTO shoppingCart
+(session_id, productCode,qty,price,productName)
+VALUES (p_session_id, p_productCode, p_qty, p_price, p_productName);
 END$$
 DELIMITER ;
 
 DELIMITER $$
-CREATE DEFINER=`root`@`localhost` PROCEDURE `authenticateCustomer`(IN `p_password` VARCHAR(75), IN `p_email` VARCHAR(75))
+CREATE DEFINER=`root`@`localhost` PROCEDURE `authenticateCustomer`(IN `p_password` VARCHAR(254), IN `p_email` VARCHAR(245))
 BEGIN
+SELECT customers.customerNumber, customers.contactFirstName, customers.email 
+FROM customers
+where customers.password = p_password AND customers.email = p_email;
+END$$
+DELIMITER ;
 
-SELECT
-	c.customerNumber AS customerID
-FROM
-	customers c
-WHERE
-	c.email = p_email AND c.password = p_password
-    ;
+DELIMITER $$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `customer_add`(IN `p_customerName` VARCHAR(50), IN `p_lastName` VARCHAR(50), IN `p_firstName` VARCHAR(50), IN `p_addressLine1` VARCHAR(50), IN `p_addressLine2` VARCHAR(50), IN `p_city` VARCHAR(50), IN `p_state` CHAR(50), IN `p_postalCode` VARCHAR(50), IN `p_country` VARCHAR(50), IN `p_creditLimit` DECIMAL, IN `p_email` VARCHAR(50), IN `p_phone` VARCHAR(50), IN `p_password` VARCHAR(200))
+BEGIN
+INSERT INTO customers
+(customerName, contactLastName, contactFirstName, phone,addressLine1, addressLine2,
+ city, state, postalCode, country, creditLimit, email, password)
+VALUES(p_customerName, p_lastName, p_firstName, p_phone, 
+       p_addressLine1, p_addressLine2, p_city, p_state, 
+       p_postalCode, p_country, p_creditLimit, p_email, 
+       password);
+
+END$$
+DELIMITER ;
+
+DELIMITER $$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `deleteCustomer`(IN `p_customerNumber` INT)
+BEGIN
+DELETE FROM customers
+WHERE customers.customerNumber = p_customerNumber;
+END$$
+DELIMITER ;
+
+DELIMITER $$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `deleteOrder`(IN `p_orderNumber` INT)
+BEGIN
+DELETE FROM orders
+WHERE orders.orderNumber = p_orderNumber;
+END$$
+DELIMITER ;
+
+DELIMITER $$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `deleteProduct`(IN `p_code` VARCHAR(15))
+BEGIN
+DELETE FROM products
+WHERE PRODUCTS.productCode = p_code;
+END$$
+DELIMITER ;
+
+DELIMITER $$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `emptyCart`(IN `p_session_id` INT(254))
+BEGIN
+DELETE FROM shoppingcart
+WHERE shoppingcart.session_id = p_session_id;
 END$$
 DELIMITER ;
 
@@ -38,51 +71,256 @@ END$$
 DELIMITER ;
 
 DELIMITER $$
-CREATE DEFINER=`root`@`localhost` PROCEDURE `getCustomer`(IN `p_customerNumber` INT(11))
+CREATE DEFINER=`root`@`localhost` PROCEDURE `getCartDetails`(IN `p_session_id` VARCHAR(254))
+BEGIN
+SELECT id, productCode, productName, qty, price
+FROM shoppingcart
+where session_id = p_session_id;
+END$$
+DELIMITER ;
+
+DELIMITER $$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `getCartValue`(IN `p_session_id` INT)
+BEGIN
+SELECT SUM(qty * price) AS cartValue
+FROM shoppingcart
+where session_id = p_session_id;
+END$$
+DELIMITER ;
+
+DELIMITER $$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `getCustomer`(IN `p_customerNumber` INT)
+BEGIN
+SELECT customers.customerNumber, customers.customerName, customers.contactLastName, customers.contactFirstName, customers.phone, customers.addressLine1, customers.addressLine2, customers.city, customers.state, customers.postalCode, customers.country, customers.creditLimit, customers.email, customers.password
+FROM customers
+WHERE customers.customerNumber = p_customerNumber;
+END$$
+DELIMITER ;
+
+DELIMITER $$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `getCustomerByName`(IN `p_name` VARCHAR(25))
+BEGIN
+SELECT * 
+FROM customers
+WHERE customers.customerName LIKE '%p_name%';
+END$$
+DELIMITER ;
+
+DELIMITER $$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `getCustomers`(IN `p_offset` INT)
+BEGIN
+SELECT customerNumber, contactFirstName, contactLastName, country, addressLine1, addressLine2, city, email, phone, postalcode, state
+FROM customers
+LIMIT 10 OFFSET p_offset;
+END$$
+DELIMITER ;
+
+DELIMITER $$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `getNumberItemsInCart`(IN `p_session_id` VARCHAR(254))
+BEGIN
+SELECT count(*) as NumberofItems
+FROM shoppingcart
+where session_id = p_session_id;
+END$$
+DELIMITER ;
+
+DELIMITER $$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `getOrder`(IN `p_orderNumber` INT)
+BEGIN
+SELECT customers.customerName, customers.customerNumber
+FROM orders
+LEFT JOIN customers ON orders.customerNumber = customers.customerNumber
+WHERE orders.orderNumber = p_orderNumber;
+END$$
+DELIMITER ;
+
+DELIMITER $$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `getOrderDetails`(IN `p_orderNumber` INT, IN `p_offset` INT)
+BEGIN
+SELECT orderdetails.orderNumber, orderdetails.productCode, orderdetails.quantityOrdered, orderdetails.priceEach, orderdetails.orderLineNumber
+FROM orderdetails
+WHERE orderdetails.orderNumber = p_orderNumber
+ORDER BY orderdetails.orderLineNumber ASC
+LIMIT p_offset;
+END$$
+DELIMITER ;
+
+DELIMITER $$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `getOrders`(IN `p_limit` INT, IN `p_offset` INT)
+BEGIN
+SELECT orders.orderNumber, orders.orderDate, orders.requiredDate, orders.shippedDate, orders.status, orders.comments, orders.customerNumber
+FROM orders
+LIMIT p_limit OFFSET p_offset;
+END$$
+DELIMITER ;
+
+DELIMITER $$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `getProduct`(IN `p_product_code` VARCHAR(15))
+BEGIN
+SELECT products.productCode, products.productName, products.productLine, products.productScale, products.productVendor, products.productDescription, products.quantityInStock, products.buyPrice, products.MSRP, products.image
+FROM products
+WHERE products.productCode = p_product_code;
+END$$
+DELIMITER ;
+
+DELIMITER $$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `getProductByName`(IN `p_name` VARCHAR(70))
+BEGIN
+SELECT * 
+FROM products
+WHERE PRODUCTS.productName LIKE '%p_name%';
+END$$
+DELIMITER ;
+
+DELIMITER $$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `getProducts`(IN `p_offset` INT, IN `p_limit` INT)
+BEGIN
+SELECT products.productCode, products.productName, products.productVendor, products.MSRP, products.image
+FROM products
+LIMIT p_limit OFFSET p_offset;
+END$$
+DELIMITER ;
+
+DELIMITER $$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `getProducts2`()
+BEGIN
+SELECT products.productCode, products.productName, products.productVendor, products.MSRP, products.image
+FROM products
+LIMIT 17;
+END$$
+DELIMITER ;
+
+DELIMITER $$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `insertCustomer`(IN `p_customerName` VARCHAR(35), IN `p_lastName` VARCHAR(35), IN `p_firstName` VARCHAR(35), IN `p_addressLine1` VARCHAR(75), IN `p_addressLine2` VARCHAR(75), IN `p_city` VARCHAR(20), IN `p_state` VARCHAR(10), IN `p_postalCode` VARCHAR(12), IN `p_country` VARCHAR(50), IN `p_creditLimit` DECIMAL(6,2), IN `p_phone` VARCHAR(12), IN `p_email` VARCHAR(35), IN `p_password` VARCHAR(20))
+BEGIN
+INSERT INTO customers
+(customerName, ContactLastName, ContactFirstName, addressLine1, addressLine2, city, state, postalCode, country, creditLimit, phone, email, password)
+VALUES(p_customerName, p_lastName, p_firstName, 
+    p_addressLine1,  p_addressLine2,  p_city,
+   p_state,p_postalCode,p_country, p_creditLimit,
+   p_phone, p_email, p_password);
+END$$
+DELIMITER ;
+
+DELIMITER $$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `insertOrder`(IN `p_requiredDate` DATE, IN `p_shippedDate` DATE, IN `p_status` INT, IN `p_comments` VARCHAR(255))
+BEGIN
+INSERT INTO orders
+(orderDate, requiredDate, shippedDate, status, comments)
+VALUES(now(), p_requiredDate, p_shippedDate, p_status, p_comments);
+END$$
+DELIMITER ;
+
+DELIMITER $$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `insertOrderDetails`(IN `p_orderNo` INT, IN `p_price` FLOAT, IN `p_productCode` VARCHAR(15), IN `p_qty` INT)
+BEGIN
+INSERT INTO orderdetails
+(orderNumber, priceEach, productCode, quantityOrdered)
+VALUES(p_orderNo, p_price, p_productCode, p_qty);
+END$$
+DELIMITER ;
+
+DELIMITER $$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `insertProduct`(IN `p_productCode` VARCHAR(15), IN `p_productName` VARCHAR(75), IN `p_productLine` VARCHAR(35), IN `p_productScale` VARCHAR(20), IN `p_productVendor` VARCHAR(50), IN `p_productDescription` VARCHAR(50), IN `p_quantityInStock` INT, IN `p_buyPrice` DOUBLE, IN `p_MSRP` DOUBLE, IN `p_image` VARCHAR(125))
+BEGIN
+INSERT INTO products
+(productCode, productName, productLine, productScale, productVendor,
+ productDescription, quantityInStock, buyPrice, MSRP, image)
+VALUES(p_productCode, p_productName, p_productLine, p_productScale, 
+       p_productVendor, p_productDescription, p_quantityInStock, p_buyPrice,
+       p_MSRP, p_image);
+END$$
+DELIMITER ;
+
+DELIMITER $$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `lastOrderNumber`()
+BEGIN
+SELECT max(orders.orderNumber) AS lastOrderNo
+FROM orders;
+END$$
+DELIMITER ;
+
+DELIMITER $$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `no_of_rows_customer`()
+BEGIN
+SELECT count(*) AS no_of_rows
+FROM customers;
+END$$
+DELIMITER ;
+
+DELIMITER $$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `number_of_rows_products`()
+BEGIN
+Select count(*) as No_of_rows
+FROM products;
+END$$
+DELIMITER ;
+
+DELIMITER $$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `numberofOrders`()
+BEGIN
+Select count(*) as num_rows
+FROM orders;
+END$$
+DELIMITER ;
+
+DELIMITER $$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `numberofProducts`(OUT `p_numberofProducts` INT)
 BEGIN
 
-SELECT 
-c.customerNumber, c.customerName, c.contactLastName, c.contactFirstName, c.phone,
-c.addressLine1, c.addressLine2, c.city, c.state, c.postalCode, c.country, 
-c.creditLimit, c.email, c.password
-FROM customers c
-WHERE c.customerNumber = p_customerNumber;
+SET p_numberofProducts = (SELECT count(*)
+FROM products);
 
 END$$
 DELIMITER ;
 
 DELIMITER $$
-CREATE DEFINER=`root`@`localhost` PROCEDURE `getCustomerByEmail`(IN `p_email` VARCHAR(75), OUT `customerNumber` VARCHAR(75))
+CREATE DEFINER=`root`@`localhost` PROCEDURE `orderExists`(IN `p_customerNumber` INT)
 BEGIN
-
-SELECT concat(c.contactFirstName, ' ', c.contactLastName) into customerNumber
-
-FROM customers c
-
-WHERE c.email = p_email;
-
+SELECT * 
+FROM orders
+where orders.customerNumber = p_customerNumber;
 END$$
 DELIMITER ;
 
 DELIMITER $$
-CREATE DEFINER=`root`@`localhost` PROCEDURE `updateCustomer`(IN `p_customerName` VARCHAR(50), IN `p_contactLastName` VARCHAR(50), IN `p_phone` VARCHAR(50), IN `p_addressLine1` VARCHAR(50), IN `p_addressLine2` VARCHAR(50), IN `p_city` VARCHAR(50), IN `p_state` VARCHAR(50), IN `p_postalCode` VARCHAR(15), IN `p_country` VARCHAR(50), IN `p_creditLimit` DECIMAL(10,0), IN `p_email` VARCHAR(50), IN `p_password` VARCHAR(200), IN `p_contactFirstName` VARCHAR(50))
+CREATE DEFINER=`root`@`localhost` PROCEDURE `updateCustomer`(IN `p_id_to_update` INT, IN `p_customerName` VARCHAR(35), IN `p_lastName` VARCHAR(35), IN `p_firstName` VARCHAR(35), IN `p_addressLine1` VARCHAR(75), IN `p_addressLine2` VARCHAR(75), IN `p_city` VARCHAR(55), IN `p_state` CHAR(2), IN `p_postalCode` VARCHAR(20), IN `p_country` VARCHAR(35), IN `p_creditLimit` DECIMAL(10,0), IN `p_email` VARCHAR(255), IN `p_phone` VARCHAR(22))
 BEGIN
-    UPDATE customers
-    SET
-        customerName = p_customerName,
-        contactLastName = p_contactLastName,
-        contactFirstName = p_contactFirstName,
-        phone = p_phone,
-        addressLine1 = p_addressLine1,
-        addressLine2 = p_addressLine2,
-        city = p_city,
-        state = p_state,
-        postalCode = p_postalCode,
-        country = p_country,
-        creditLimit = p_creditLimit,
-        email = p_email,
-        password = p_password
-    WHERE 
-        customerNumber = p_customerNumber;
+UPDATE customers
+SET customers.customerName = p_customerName,
+	customers.ContactLastName = p_lastName,
+    customers.ContactFirstName = p_firstName, 
+    customers.addressLine1 = p_addressLine1, 
+    customers.addressLine2 = p_addressLine2, 
+   customers.city = p_city,
+   customers.state = p_state,
+   customers.postalCode = p_postalCode,
+   customers.creditLimit = p_creditLimit,
+   customers.phone = p_phone,
+   customers.email = p_email
+WHERE customers.customerNumber = p_id_to_update;
+END$$
+DELIMITER ;
+
+DELIMITER $$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `updateOrder`(IN `p_orderNumber` INT, IN `p_requiredDate` DATE, IN `p_shippedDate` DATE, IN `p_comments` VARCHAR(256), IN `p_stats` VARCHAR(10), IN `p_customerNumber` INT)
+BEGIN
+UPDATE orders
+SET orders.requiredDate = p_requiredDate,
+orders.shippedDate = p_shippedDate,
+orders.status = p_status, comments = p_comments
+WHERE orders.orderNumber = p_orderNumber;
+END$$
+DELIMITER ;
+
+DELIMITER $$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `updateProduct`(IN `p_code` VARCHAR(15), IN `p_productName` VARCHAR(25), IN `p_productVendor` VARCHAR(35), IN `p_description` VARCHAR(65), IN `p_productLine` VARCHAR(25), IN `p_productScale` VARCHAR(15), IN `p_quantityInStock` INT, IN `p_buyPrice` DOUBLE, IN `p_msrp` DOUBLE, IN `p_img` VARCHAR(85))
+BEGIN
+UPDATE products
+SET products.productName = p_productName, productVendor = p_productVendor,
+productDescription = p_description, productLine= p_productLine, productScale = p_productScale,
+quantityInStock = p_quantityInStock, buyPrice = p_buyPrice, MSRP = p_msrp,
+image = p_img
+WHERE products.productCode = p_code;
 END$$
 DELIMITER ;
