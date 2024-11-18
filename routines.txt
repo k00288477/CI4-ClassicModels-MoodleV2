@@ -1,0 +1,88 @@
+DELIMITER $$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `addCustomer`(IN `p_customerName` VARCHAR(50), IN `p_contactLastName` VARCHAR(50), IN `p_phone` VARCHAR(50), IN `p_addressLine1` VARCHAR(50), IN `p_addressLine2` VARCHAR(50), IN `p_city` VARCHAR(50), IN `p_state` VARCHAR(50), IN `p_postalCode` VARCHAR(15), IN `p_country` VARCHAR(50), IN `p_creditLimit` DECIMAL(10,0), IN `p_email` VARCHAR(50), IN `p_password` VARCHAR(200), IN `p_contactFirstName` VARCHAR(50))
+BEGIN
+INSERT INTO customers(
+customerName, contactLastName, contactFirstName, phone,
+addressLine1, addressLine2, city, state, postalCode, country, creditLimit, email, password
+)
+
+VALUES(
+p_customerName, p_contactLastName, p_contactFirstName, p_phone, p_addressLine1, p_addressLine2, p_city, p_state, p_postalCode, 
+    p_country, p_creditLimit, p_email, p_password
+)
+
+;
+END$$
+DELIMITER ;
+
+DELIMITER $$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `authenticateCustomer`(IN `p_password` VARCHAR(75), IN `p_email` VARCHAR(75))
+BEGIN
+
+SELECT
+	c.customerNumber AS customerID
+FROM
+	customers c
+WHERE
+	c.email = p_email AND c.password = p_password
+    ;
+END$$
+DELIMITER ;
+
+DELIMITER $$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `getAllProducts`()
+BEGIN
+SELECT products.productCode, products.productName, products.productVendor, products.MSRP, products.image
+FROM products;
+END$$
+DELIMITER ;
+
+DELIMITER $$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `getCustomer`(IN `p_customerNumber` INT(11))
+BEGIN
+
+SELECT 
+c.customerNumber, c.customerName, c.contactLastName, c.contactFirstName, c.phone,
+c.addressLine1, c.addressLine2, c.city, c.state, c.postalCode, c.country, 
+c.creditLimit, c.email, c.password
+FROM customers c
+WHERE c.customerNumber = p_customerNumber;
+
+END$$
+DELIMITER ;
+
+DELIMITER $$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `getCustomerByEmail`(IN `p_email` VARCHAR(75), OUT `customerNumber` VARCHAR(75))
+BEGIN
+
+SELECT concat(c.contactFirstName, ' ', c.contactLastName) into customerNumber
+
+FROM customers c
+
+WHERE c.email = p_email;
+
+END$$
+DELIMITER ;
+
+DELIMITER $$
+CREATE DEFINER=`root`@`localhost` PROCEDURE `updateCustomer`(IN `p_customerName` VARCHAR(50), IN `p_contactLastName` VARCHAR(50), IN `p_phone` VARCHAR(50), IN `p_addressLine1` VARCHAR(50), IN `p_addressLine2` VARCHAR(50), IN `p_city` VARCHAR(50), IN `p_state` VARCHAR(50), IN `p_postalCode` VARCHAR(15), IN `p_country` VARCHAR(50), IN `p_creditLimit` DECIMAL(10,0), IN `p_email` VARCHAR(50), IN `p_password` VARCHAR(200), IN `p_contactFirstName` VARCHAR(50))
+BEGIN
+    UPDATE customers
+    SET
+        customerName = p_customerName,
+        contactLastName = p_contactLastName,
+        contactFirstName = p_contactFirstName,
+        phone = p_phone,
+        addressLine1 = p_addressLine1,
+        addressLine2 = p_addressLine2,
+        city = p_city,
+        state = p_state,
+        postalCode = p_postalCode,
+        country = p_country,
+        creditLimit = p_creditLimit,
+        email = p_email,
+        password = p_password
+    WHERE 
+        customerNumber = p_customerNumber;
+END$$
+DELIMITER ;
