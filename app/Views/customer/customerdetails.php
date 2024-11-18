@@ -7,7 +7,7 @@ $index_path = getenv('INDEX');
 echo view('header'); 
 echo view('sidebar'); 
 			
-echo form_open($index_path.'/CustomerController/handleCustomerActivity/'. $Customer['customerNumber']); ?>
+echo form_open(base_url('handleCustomerActivity/'. $Customer['customerNumber'])); ?>
 
   <p><h1>Details for Customer: <?php echo $Customer['customerNumber'] ?></p></h1> <br />
   <table width="553" border="0" cellpadding="5" cellspacing="5">

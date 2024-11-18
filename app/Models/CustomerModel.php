@@ -32,13 +32,25 @@ class CustomerModel extends Model {
 	 *this function is called as part of the drill down
 	 */
     public function getCustomer($customerNumber) {
+		log_message("debug", "Fetching details for Customer Number: " . $customerNumber);
 
 		$query = $this->db->query("Call getCustomer($customerNumber)");
 
-		if($query->getNumRows() > 0){
+		echo print_r($query->getRowArray(), true);
+
+	    if ($query->getNumRows() > 0) {
+			// Fetch the first row as an associative array
 			$result = $query->getRowArray();
-			log_message("debug", "Query Result:". print_r($result));
+			
+			// Log the result for debugging
+			log_message("debug", "GET CUSTOMER Query Result: " . print_r($result, true));
+			
+			// Return the result
 			return $result;
+		} else {
+			// If no result found, return null or handle accordingly
+			log_message("debug", "No customer found with number: " . $customerNumber);
+			return null;
 		}
 
     }//end function getCustomer()
@@ -76,6 +88,8 @@ class CustomerModel extends Model {
 	 */
       public function updateCustomer($customer) {
 
+		echo print_r($customer, true);
+	
 		$customerNumber = $customer['customerNumber'];
 		$customerName = $customer['customerName'];
 		$c_lname = $customer['contactLastName'];
@@ -88,7 +102,7 @@ class CustomerModel extends Model {
 		$state = $customer['state'];
 		$p_code = $customer['postalCode'];
 		$country = $customer['country'];
-		$creditLimit = ['creditLimit'];
+		$creditLimit = $customer['creditLimit'];
 
 
 		$this->db->query("CALL updateCustomer(

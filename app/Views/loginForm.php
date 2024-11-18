@@ -60,7 +60,7 @@ helper(['url', 'form']);
 	<div class="tab">
 		<ul class="login">
 			<li class="left">&nbsp;</li>
-			<li>Hello <?php echo session()->get('customerName') ?? 'Guest'; ?></li> <!--carol -->
+			<li>Hello <?php echo session()->get('contactFirstName') ?? 'Guest'; ?></li> <!--carol -->
 			<li class="sep">|</li>
 			<li id="toggle">
 				<a id="open" class="open" href="#">Log In | Register</a>

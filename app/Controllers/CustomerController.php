@@ -75,13 +75,17 @@ class CustomerController extends BaseController {
 	 */
 	public function getDrillDownCustomer($customerNumber) {
 	   // Get specific customer
-	   log_message("debug", "Drilldown reached with: ". print_r($customerNumber));
-	   // Call Model method
-	   $Customer['Customer'] = $this->CustomerModel->getCustomer($customerNumber);
+	   echo print_r($customerNumber, true);
 
-	   echo view('customer/customerDetails', $Customer);
-	   
-     
+	   // Call Model method
+	   $Customer = $this->CustomerModel->getCustomer($customerNumber);
+
+	   if(!$Customer){
+		$msg = 'Error retrieving details';
+		echo view('msgPage', ['msg' => $msg]);
+	   } else {
+	   echo view('customer/customerDetails', ['Customer' => $Customer]);
+	   }
 	}//end function getDrillDownCustomer() 
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////// 
@@ -101,7 +105,6 @@ class CustomerController extends BaseController {
 	 *function which handles the buttons at the button of the drilldown view
 	 */
     public function handleCustomerActivity($customerNumber) {
-		
         if (isset($_POST['insert']))
           echo view('customer/insertCustomer'); //call view to handle an insert
         else if (isset($_POST['update']))
@@ -150,11 +153,11 @@ class CustomerController extends BaseController {
 				$msg = 'You have been successfully registered';
 			} else {
 				// handle errors and create message
-				$data['validation'] = $this->validator;
+				$customer['validation'] = $this->validator;
 				$msg = 'Error processing request, please try again';
 			}
 		} else {
-			$data['validation'] = $this->validator; 
+			$customer['validation'] = $this->validator; 
 			echo view('customer/registerCustomer', $data);
 			return; // Exit to avoid displaying success message on initial load
 		}
@@ -173,23 +176,22 @@ class CustomerController extends BaseController {
 		// Check for POST request
 		if ($this->request->getPost()) {
 			$customer = $this->request->getPost();
-
+			
 			// Validate inputs
 			if ($this->validate('user_validation_rules')) {
 				// Call updateCustomer if validation passes
-				$this->CustomerModel->updateCustomer($customer);
-				$flag = true;
+				$flag = $this->CustomerModel->updateCustomer($customer);
+				
 				$this->handleFlag($flag);
 			} else {
-				// handle errors and create message
+				// handle errors
 				$data['validation'] = $this->validator;
-				$flag = false;
-				$this->handleFlag($flag);
+				// return user data to the form
+           		$data['Customer'] = $customer;
+            	echo view('customer/customerDetails', $data);
 			}
 		} else {
-			$data['validation'] = $this->validator; 
-			echo view('customer/registerCustomer', $data);
-			return; // Exit to avoid displaying success message on initial load
+			echo view('customer/customerDetails', ['customerNumber' => $customerNumber]);
 		}
 	
 			// The handleFlag method will display the message to the user
@@ -201,7 +203,6 @@ class CustomerController extends BaseController {
 	 *internal function to load a success/failure message after an update, deletion or insertion to the DB.
 	 */    
     public function handleFlag($flag) {
-		
 		//if $flag is true display success message else display failure message
 		if ($flag)
           	$data['msg'] = "The changes you have made have been saved to the database";
