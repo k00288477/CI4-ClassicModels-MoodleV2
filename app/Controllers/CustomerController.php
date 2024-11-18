@@ -49,8 +49,7 @@ class CustomerController extends BaseController {
 	  *top level function to allow a customer to register with the site
 	  */
 	  public function register() {
-
-
+		
 	  }
   
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////// 
@@ -128,9 +127,9 @@ class CustomerController extends BaseController {
 	 *function to perform an insertion of customer into into the DB via the model
 	 */
     public function insertCustomer() {
+
        
  
-
     }//end function insertCustomer()
 	
 	
@@ -139,7 +138,7 @@ class CustomerController extends BaseController {
 	 *function to allow a customer to register their details
 	 */
 	public function registerCustomer() {
-		// Check for POST request
+			// Check for POST request
 		if ($this->request->getPost()) {
 			$customer = $this->request->getPost();
 
@@ -163,7 +162,6 @@ class CustomerController extends BaseController {
 		// Display the msgpag
 		// Pass the message to the view
 		echo view('msgpage',['msg' => $msg]);
-	
 	}//end function insertCustomer()
 	
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////// 
@@ -227,20 +225,18 @@ class CustomerController extends BaseController {
 	
 	// Call method from Customer Model to authenticate
 	$result = $this->CustomerModel->authenticate($password, $email);
-	
-	if($result){
-		// returns the customer name from their email address
-		$customerName = $this->CustomerModel->getCustomerByEmail($email);
 
+	if($result){
 		// set username
 		$sessionData = [
-			'customerName' => $customerName,
+			'contactFirstName' => $result['contactFirstName'],
 			'isLoggedIn' => true,
 		];
 		$this->session->set($sessionData);
 		
+		$name = $result['contactFirstName'];
 		// set success message
-		$msg = "$customerName, you have successfully logged in.";
+		$msg = "{$name}, you have successfully logged in.";
 	}
 	else {
 		$msg = "You have entered an invalid email/password combination. Please try again.";

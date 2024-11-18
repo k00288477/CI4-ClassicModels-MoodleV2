@@ -76,7 +76,8 @@ class CustomerModel extends Model {
 	 */
       public function updateCustomer($customer) {
 
-		$customerName = $customer['companyName'];
+		$customerNumber = $customer['customerNumber'];
+		$customerName = $customer['customerName'];
 		$c_lname = $customer['contactLastName'];
 		$c_fname = $customer['contactFirstName'];
 		$phone = $customer['phone'];
@@ -87,24 +88,23 @@ class CustomerModel extends Model {
 		$state = $customer['state'];
 		$p_code = $customer['postalCode'];
 		$country = $customer['country'];
-		$password = $customer['password'];
-		$creditLimit = 0.00;
+		$creditLimit = ['creditLimit'];
 
 
 		$this->db->query("CALL updateCustomer(
+			'$customerNumber',
 			'$customerName',
 			'$c_lname',
 			'$c_fname',
-			'$phone',
 			'$add1',
 			'$add2',
-			'$email',
 			'$city',
 			'$state',
 			'$p_code',
 			'$country',
-			'$password',
-			'$creditLimit'
+			'$creditLimit',
+			'$email',
+			'$phone'
 		)");
 
 		$flag = true;
@@ -119,9 +119,8 @@ class CustomerModel extends Model {
 	 *all info is contained in $customer 
 	 */ 
     public function insertCustomer($customer) {
-		
 		// extract fields from form
-		$companyName = $customer['companyName'];
+		$customerName = $customer['companyName'];
 		$c_lname = $customer['contactLastName'];
 		$c_fname = $customer['contactFirstName'];
 		$phone = $customer['phone'];
@@ -136,21 +135,21 @@ class CustomerModel extends Model {
 		$creditLimit = 0.00; // initalize to zero
 
 		// call stored procedure and pass parameters
-		$this->db->query('Call addCustomer(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)' ,[
-			$companyName,
-			$c_lname,
-			$phone,
-			$add1,
-			$add2,
-			$city,
-			$state,
-			$p_code,
-			$country,
-			$creditLimit,
-			$email,
-			$password,
-			$c_fname
-		]); 
+		$this->db->query("Call customer_add(
+			'$customerName',
+			'$c_lname',
+			'$c_fname',
+			'$add1',
+			'$add2',
+			'$city',
+			'$state',
+			'$p_code',
+			'$country',
+			'$creditLimit',
+			'$email',
+			'$phone',
+			'$password'
+		)"); 
 
     }//end function insertCustomer()
 
@@ -159,22 +158,14 @@ class CustomerModel extends Model {
     /*
 	 *function to authenticate a customer login
 	 */ 
-	 public function authenticate($email, $password) {
-		$customerName = '';
+	 public function authenticate($password, $email) {
+		// Call the stored procedure, email and password In params, @customerName Out param
+		$query = $this->db->query("CALL authenticateCustomer('$password', '$email')");
 
-     // Call the stored procedure, email and password In params, @customerName Out param
-	 $this->db->query("CALL authenticateCustomer(?, ?, @customerName)", [$password, $email]);
+		// Get details
+		$result = $query->getRowArray();
 
-	 // Get the OUT parameter value
-	 $result = $this->db->query("SELECT @customerName AS customerName")->getRow();
-
-		if(!empty($result->customerName)){
-			return [
-				'authenticated' => true, 'customerName' => $result->customerName];
-		}
-		else {
-			return ['authenticated' => false, 'customerName' => null];
-		}
+		return $result;
 	 }
 	 /*
 	 *function to return the total number of records in the customers table
