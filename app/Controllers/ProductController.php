@@ -8,6 +8,13 @@ use App\Models\ShoppingCartModel;
 class ProductController extends BaseController {
 	
 	var $imageName;
+	protected $pagination;
+    protected $encrypt;
+    protected $session;
+    protected $validation;
+    protected $productModel;
+    protected $productPageModel;
+	protected $shoppingCartModel;
 	
 ////////////////////////////////////////////////////////////////////////////////////////////////	
 	 /*
@@ -17,13 +24,14 @@ class ProductController extends BaseController {
 		  
 		$this->session = \Config\Services::session();	
 		$this->pagination = \Config\Services::pager();
+
 		$cart = \Config\Services::cart();
 		  
 		helper(['url', 'form']);
 		  
-		$this->ProductModel = new ProductModel();  
-		$this->ProductPageModel = new ProductPageModel();  
-		$this->ShoppingCartModel = new ShoppingCartModel();
+		$this->productModel = new ProductModel();  
+		$this->productPageModel = new ProductPageModel();  
+		$this->shoppingCartModel = new ShoppingCartModel();
 	
      }//end function __construct()
 	 
@@ -97,8 +105,26 @@ class ProductController extends BaseController {
 	*function called when the user wants to add an item to their cart
 	*/
 	public function addToCart($productCode) {
-        
- 
+        // get the product details
+		$product = $this->productModel->getProduct($productCode);
+		$qty = $this->request->getPost('quantityPurchased');
+		$customerNumber = $this-session;
+		$data = [
+			'customerNumber' => $customerNumber,
+			'productCode' => $product['productCode'],
+			'price' => $product['buyPrice'],
+			'qty' => $qty,
+			'productName' => $product['productName'],
+			'sessionId' => $this->session->session_id
+		];
+		// call stored procedure to add to cart
+		$query = $this->shoppingCartModel->addToCart($data);
+
+		if(!$query){
+			echo view('msgpage',['msg' => 'Error adding item to cart']);
+		} else {
+			echo view('msgpage',['msg' => 'Added to cart']);
+		}
         
     }//end addToCart
 	
@@ -119,8 +145,11 @@ class ProductController extends BaseController {
 */
 
 		public function isLoggedIn() {
-			
- 
+			if ($this->session->get('isLoggedIn')) {
+				return true;  // User is logged in
+			} else {
+				return false; // User is not logged in
+			}
 		}
 
 ////////////////////////////////////////////////////////////////////////////////////////////////	
@@ -138,8 +167,7 @@ class ProductController extends BaseController {
 	 *retrieves products for ADMIN STAFF based on an offset
 	 */
 	public function getProductsForAdmin() { //called from sidebar of admin menu
-                
- 
+
 	
 	}////end  function getProductsForAdmin()
 
@@ -170,7 +198,15 @@ class ProductController extends BaseController {
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
 	 public function getDrillDownProduct($productCode) {
-       
+        // Call Model method
+	   $product = $this->productModel->getProduct($productCode);
+	   
+	   if(!$product){
+		$msg = 'Error retrieving details';
+		echo view('msgPage', ['msg' => $msg]);
+	   } else {
+	   echo view('product/productdetails', ['product' => $product]);
+	   }
  
 		 
      }//end getDrillDownProduct
@@ -224,9 +260,12 @@ class ProductController extends BaseController {
 	 *function to allow the retrival of all products
 	 */		
 	public function getProducts() {
-		
- 
-    
+				// display all products using pagination
+				$products = ['AllProducts' => $this->productPageModel->paginate(10),
+				'pager' => $this->productPageModel->pager ];
+
+
+				echo view('product/ViewAllProducts', $products);   
 	  }//end function getProducts()
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////	 

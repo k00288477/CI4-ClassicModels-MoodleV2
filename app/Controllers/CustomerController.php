@@ -12,7 +12,6 @@ class CustomerController extends BaseController {
     protected $encrypt;
     protected $session;
     protected $validation;
-
     protected $CustomerModel;
     protected $CustomerPageModel;
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////// 
@@ -21,10 +20,9 @@ class CustomerController extends BaseController {
 
 		//load relevant CI libraries and helpers and init the configuration options for pagination
 		$this->pagination = \Config\Services::pager();
-		  
 		$this->encrypt = \Config\Services::encrypt();
 		$this->session = \Config\Services::session();	
-		$this->validation = \Config\Services::user_validation_rules();
+		$this->validation = \Config\Services::validation();
 		
 		helper(['url']);
 		  
@@ -59,7 +57,6 @@ class CustomerController extends BaseController {
 	 *called from the sidebar
 	 */
     public function getAllCustomers() {
-	
 		// Paginate, 10 per view
 		$customers = ['customers' => $this->CustomerPageModel->paginate(10),
 						'pager' => $this->CustomerPageModel->pager ];
@@ -75,11 +72,11 @@ class CustomerController extends BaseController {
 	 */
 	public function getDrillDownCustomer($customerNumber) {
 	   // Get specific customer
-	   echo print_r($customerNumber, true);
+	//    echo print_r($customerNumber, true);
 
 	   // Call Model method
 	   $Customer = $this->CustomerModel->getCustomer($customerNumber);
-
+	   
 	   if(!$Customer){
 		$msg = 'Error retrieving details';
 		echo view('msgPage', ['msg' => $msg]);
@@ -96,6 +93,7 @@ class CustomerController extends BaseController {
 	 */
 	public function getCustomerByName() {
 		
+
  	
 	}//end function getProductByName()
 
@@ -120,7 +118,15 @@ class CustomerController extends BaseController {
 	 *function to allow the deletion of a customer based on the $customerNumber
 	 */
     public function deleteCustomer($customerNumber) {
-		       
+
+		$query = $this->CustomerModel->deleteCustomer($customerNumber);
+
+		if($query){
+			$this->session->destroy(); // log the user out
+			echo view('msgpage', ['msg' => 'Account deleted successfully']);
+		} else {
+			echo view('msgpage', ['msg' => 'Account deleted successfully']);
+		}
     }//end function deleteCustomer()
     
 	
@@ -130,9 +136,30 @@ class CustomerController extends BaseController {
 	 *function to perform an insertion of customer into into the DB via the model
 	 */
     public function insertCustomer() {
-
-       
- 
+			// Check for POST request
+			if ($this->request->getPost()) {
+				$customer = $this->request->getPost();
+	
+				// Validate inputs
+				if ($this->validate('user_validation_rules')) {
+					// Call insertCustomer if validation passes
+					$this->CustomerModel->insertCustomer($customer);
+					// create success msg
+					$msg = 'You have been successfully registered';
+				} else {
+					// handle errors and create message
+					$customer['validation'] = $this->validator;
+					$msg = 'Error processing request, please try again';
+				}
+			} else {
+				$customer['validation'] = $this->validator; 
+				echo view('customer/registerCustomer');
+				return; // Exit to avoid displaying success message on initial load
+			}
+		
+			// Display the msgpag
+			// Pass the message to the view
+			echo view('msgpage',['msg' => $msg]);
     }//end function insertCustomer()
 	
 	
@@ -158,7 +185,7 @@ class CustomerController extends BaseController {
 			}
 		} else {
 			$customer['validation'] = $this->validator; 
-			echo view('customer/registerCustomer', $data);
+			echo view('customer/registerCustomer');
 			return; // Exit to avoid displaying success message on initial load
 		}
 	
@@ -173,29 +200,28 @@ class CustomerController extends BaseController {
 	 *the update is based on $customerNumber
 	 */
     public function updateCustomer($customerNumber) {
-		// Check for POST request
-		if ($this->request->getPost()) {
-			$customer = $this->request->getPost();
-			
-			// Validate inputs
-			if ($this->validate('user_validation_rules')) {
-				// Call updateCustomer if validation passes
-				$flag = $this->CustomerModel->updateCustomer($customer);
+		
+			// Check for POST request
+			if ($this->request->getPost()) {
+				$updatedCustomer = $this->request->getPost();
+				$updatedCustomer['customerNumber'] = $customerNumber; // Ensure customerNumber is included
 				
-				$this->handleFlag($flag);
+				// Validate inputs
+				if ($this->validate('user_validation_rules')) {
+					// Call updateCustomer if validation passes
+					$flag = $this->CustomerModel->updateCustomer($updatedCustomer);
+					$this->handleFlag($flag);
+				} else {
+					// handle errors
+					$data['validation'] = $this->validator;
+					// return user data to the form
+					$data['Customer'] = $updatedCustomer;
+					echo view('customer/customerDetails', $data);
+				}
 			} else {
-				// handle errors
-				$data['validation'] = $this->validator;
-				// return user data to the form
-           		$data['Customer'] = $customer;
-            	echo view('customer/customerDetails', $data);
+				echo view('customer/customerDetails', ['customerNumber' => $customerNumber]);
 			}
-		} else {
-			echo view('customer/customerDetails', ['customerNumber' => $customerNumber]);
-		}
-	
-			// The handleFlag method will display the message to the user
-    }//end function updateCustomer()
+	}//end function updateCustomer()
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////// 
 

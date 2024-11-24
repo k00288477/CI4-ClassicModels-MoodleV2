@@ -7,12 +7,12 @@ $index_path = getenv('INDEX');
 echo view('header'); 
 echo view('sidebar'); 
 			
-echo form_open(base_url('handleCustomerActivity/'. $Customer['customerNumber'])); ?>
+echo form_open("$index_path/handleCustomerActivity/". $Customer['customerNumber']); ?>
 
   <p><h1>Details for Customer: <?php echo $Customer['customerNumber'] ?></p></h1> <br />
   <table width="553" border="0" cellpadding="5" cellspacing="5">
     <tr>
-      <td width="181"><label for="customerName12">Customer Name</label></td>
+      <td width="181"><label for="customerName">Customer Name</label></td>
       <td width="356"><input name="customerName" type="text" id="customerName" size="45" value="<?php echo $Customer['customerName'] ?>" /></td>
     </tr>
     <tr>

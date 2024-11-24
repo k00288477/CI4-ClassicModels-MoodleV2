@@ -3,7 +3,7 @@ namespace App\Models;
 use CodeIgniter\Model;
 class ProductModel extends Model { 
 
-		protected $table = 'product';
+		protected $table = 'products';
 		
 ////////////////////////////////////////////////////////////////////////////////////////////////
 	
@@ -44,8 +44,15 @@ class ProductModel extends Model {
 	  */  
       public function getProduct($productCode) {
 		
- 
-     
+		$query = $this->db->query("Call getProduct('$productCode')");
+
+		if ($query->getNumRows() > 0) {
+			// Check if any rows are returned
+			$result = $query->getRowArray();  
+			return $result;
+		} else {
+			return null;
+		}
 	 }//end function getProduct()
 	
 	

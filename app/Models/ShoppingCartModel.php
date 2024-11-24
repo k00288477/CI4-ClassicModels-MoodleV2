@@ -20,8 +20,22 @@ class ShoppingCartModel extends Model {
 	/*
 	 *function to allow the retrival of all products
 	 */		
-	public function add_to_cart($data) {
-		
+	public function addtoCart($data) {
+		// extract fields
+		$sessionId = $data['sessionId'];
+		$name = $data['productName'];
+		$qty = $data['qty'];
+		$price = $data['price'];
+		$productCode = $data['productCode'];
+
+		// call procedure
+		$this->db->query("Call add_to_shopping_cart(
+			$sessionId,
+			'$productCode',
+			$qty,
+			$price,
+			'$name'
+		)");
  
 	}
 	

@@ -36,15 +36,10 @@ class CustomerModel extends Model {
 
 		$query = $this->db->query("Call getCustomer($customerNumber)");
 
-		echo print_r($query->getRowArray(), true);
-
 	    if ($query->getNumRows() > 0) {
 			// Fetch the first row as an associative array
 			$result = $query->getRowArray();
-			
-			// Log the result for debugging
-			log_message("debug", "GET CUSTOMER Query Result: " . print_r($result, true));
-			
+
 			// Return the result
 			return $result;
 		} else {
@@ -75,11 +70,11 @@ class CustomerModel extends Model {
 	 */
     public function deleteCustomer($id) {
 
- 
-		
+		return $this->db->query("Call deleteCustomer($id)");
+
     }//end function deleteCustomer()
 
-
+	 	
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////// 
 	 
 	/*
@@ -92,7 +87,7 @@ class CustomerModel extends Model {
 	
 		$customerNumber = $customer['customerNumber'];
 		$customerName = $customer['customerName'];
-		$c_lname = $customer['contactLastName'];
+		$c_lname = $customer['contactLastName']; 	 	
 		$c_fname = $customer['contactFirstName'];
 		$phone = $customer['phone'];
 		$add1 = $customer['addressLine1'];
@@ -106,7 +101,7 @@ class CustomerModel extends Model {
 
 
 		$this->db->query("CALL updateCustomer(
-			'$customerNumber',
+			$customerNumber,
 			'$customerName',
 			'$c_lname',
 			'$c_fname',
@@ -116,7 +111,7 @@ class CustomerModel extends Model {
 			'$state',
 			'$p_code',
 			'$country',
-			'$creditLimit',
+			$creditLimit,
 			'$email',
 			'$phone'
 		)");
@@ -149,7 +144,7 @@ class CustomerModel extends Model {
 		$creditLimit = 0.00; // initalize to zero
 
 		// call stored procedure and pass parameters
-		$this->db->query("Call customer_add(
+		$this->db->query("Call insertCustomer(
 			'$customerName',
 			'$c_lname',
 			'$c_fname',
@@ -159,9 +154,9 @@ class CustomerModel extends Model {
 			'$state',
 			'$p_code',
 			'$country',
-			'$creditLimit',
-			'$email',
+			$creditLimit,
 			'$phone',
+			'$email',
 			'$password'
 		)"); 
 

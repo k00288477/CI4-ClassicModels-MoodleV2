@@ -46,7 +46,7 @@ class Validation extends BaseConfig
     public $user_validation_rules =
     [
         'companyName' => [
-            'label' => 'First Name',
+            'label' => 'companyName',
             'rules' => 'required',
             'errors' => ['required' => 'You MUST enter a {field}']
         ],
@@ -86,22 +86,22 @@ class Validation extends BaseConfig
             'errors' => ['required' => 'You MUST supply a {field}']
         ],
         'postalCode' => [
-            'label' => 'state',
+            'label' => 'postalCode',
             'rules' => 'required',
             'errors' => ['required' => 'You MUST supply a {field}']
         ],
         'country' => [
-            'label' => 'state',
+            'label' => 'country',
             'rules' => 'required',
             'errors' => ['required' => 'You MUST supply a {field}']
         ],
         'email' => [
-            'label' => 'state',
+            'label' => 'email',
             'rules' => 'required',
             'errors' => ['required' => 'You MUST supply a {field}']
         ],
         'password' => [
-            'label' => 'state',
+            'label' => 'password',
             'rules' => 'required',
             'errors' => ['required' => 'You MUST supply a {field}']
         ]
