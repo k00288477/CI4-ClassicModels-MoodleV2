@@ -38,8 +38,8 @@ $image = $product['image'];
       <td><textarea name="Description" cols="45" readonly="readonly" id="Description"><?php echo $product['productDescription']; ?></textarea></td>
     </tr>
 	<tr>
-      <td><label for="quanitytPurchased">Quantity Purchased</label></td>
-      <td><input name="quanitytPurchased" type="text" id="quanitytPurchased" value="1" size="5" /></td>
+      <td><label for="quantitytPurchased">Quantity Purchased</label></td>
+      <td><input name="quantitytPurchased" type="text" id="quantitytPurchased" value="1" size="5" /></td>
     </tr>
     <tr>
       <td><label for="quanitytInStock">Quantity In Stock</label></td>

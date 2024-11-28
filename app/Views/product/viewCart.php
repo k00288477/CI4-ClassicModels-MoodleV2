@@ -44,8 +44,8 @@ $index_path = getenv('INDEX');
 ?>
 <?php echo form_open("$index_path/ProductController/handleCartActivity/0"); ?>		
              
-	<p> <h3><b>Your cart contains: <?php  echo $NumberofItems;?> Products</b>  </h3></p>
-				   
+
+<p> <h3><b>Your cart contains: <?php  echo $NumberofItems ;?> Products</b>  </h3></p>
 		<table border="1">
 		<th>ID</th>
 		<th>Product Code</th>
@@ -62,14 +62,16 @@ $index_path = getenv('INDEX');
 					echo "<td>".$cartInfo['productCode']."</td>";
 					echo "<td>".$cartInfo['productName']."</td>";
 					echo "<td>".$cartInfo['qty']."</td>";
-					echo "<td>".$cartInfo['price']."</td>";
+					echo "<td>€".number_format($cartInfo['price'], 2)."</td>";
 					echo "<td> <a href=\"$index_page/ShoppingCartController/Remove/" . $cartInfo['id'] ."\"> More...</a></td>" ;
 					echo "</tr>";
 			}
 		?>			   
 		</table>		
 		
-		<p><b> Total &euro;<?php echo $CartValue;?></b></p>
+		<p><b> Total &euro;<?php
+		// format price to 2 decimal places
+		echo number_format($CartValue, 2);?></b></p>
 		<input name="update" id="update" type="submit" value="Update" />
 		<input name="Checkout" type="submit" value="Checkout" />
 		<input name="ContinueShopping" type="submit" value="Continue Shopping" />

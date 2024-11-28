@@ -411,6 +411,7 @@ hr {
     text-decoration: none; 
 }
 
+
 .list-style2 .first {
 	padding-top: 0px;
 	border-top: none;
@@ -477,7 +478,10 @@ hr {
 	#tube{ width:200px; height:50px; float:left;background:#FFFFFF;width:200px;}
 	#tube2{ width:200px; height:50px; float:left;background:#FFFFFF;width:200px;}
 
-
+	.error {
+		display: block;
+		color: red;
+	}
 
 
 

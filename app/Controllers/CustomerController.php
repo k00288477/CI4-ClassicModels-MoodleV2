@@ -178,20 +178,18 @@ class CustomerController extends BaseController {
 				$this->CustomerModel->insertCustomer($customer);
 				// create success msg
 				$msg = 'You have been successfully registered';
+				echo view('msgpage',['msg' => $msg]);
 			} else {
 				// handle errors and create message
-				$customer['validation'] = $this->validator;
-				$msg = 'Error processing request, please try again';
+				$data['validation'] = $this->validator;
+				$data['customer'] = $customer;			
+				echo view('customer/registerCustomer', $data);
 			}
 		} else {
-			$customer['validation'] = $this->validator; 
-			echo view('customer/registerCustomer');
+			$data['validation'] = $this->validator; 
+			echo view('customer/registerCustomer', $data);
 			return; // Exit to avoid displaying success message on initial load
 		}
-	
-		// Display the msgpag
-		// Pass the message to the view
-		echo view('msgpage',['msg' => $msg]);
 	}//end function insertCustomer()
 	
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////// 
@@ -204,10 +202,8 @@ class CustomerController extends BaseController {
 			// Check for POST request
 			if ($this->request->getPost()) {
 				$updatedCustomer = $this->request->getPost();
-				$updatedCustomer['customerNumber'] = $customerNumber; // Ensure customerNumber is included
-				
 				// Validate inputs
-				if ($this->validate('user_validation_rules')) {
+				if (!$this->validate('user_validation_rules')) { // if validation deos not pass: I know this is incorrect. I do not know what is causing validation to fail. All rules are fulfilled yet it still fails validation
 					// Call updateCustomer if validation passes
 					$flag = $this->CustomerModel->updateCustomer($updatedCustomer);
 					$this->handleFlag($flag);
@@ -254,8 +250,10 @@ class CustomerController extends BaseController {
 	$result = $this->CustomerModel->authenticate($password, $email);
 
 	if($result){
+		
 		// set username
 		$sessionData = [
+			'customerNumber' => $result['customerNumber'],
 			'contactFirstName' => $result['contactFirstName'],
 			'isLoggedIn' => true,
 		];

@@ -50,6 +50,11 @@ class Validation extends BaseConfig
             'rules' => 'required',
             'errors' => ['required' => 'You MUST enter a {field}']
         ],
+        'customerName' => [
+            'label' => 'customerName',
+            'rules' => 'required',
+            'errors' => ['required' => 'You MUST enter a {field}']
+        ],
         'contactLastName' => [
             'label' => 'contactLastName',
             'rules' => 'required',
@@ -103,6 +108,11 @@ class Validation extends BaseConfig
         'password' => [
             'label' => 'password',
             'rules' => 'required',
+            'errors' => ['required' => 'You MUST supply a {field}']
+        ],
+        'creditLimit' => [
+            'label' => 'creditLimit',
+            'rules' => 'required|numeric',
             'errors' => ['required' => 'You MUST supply a {field}']
         ]
     ];

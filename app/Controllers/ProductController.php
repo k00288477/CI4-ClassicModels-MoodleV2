@@ -107,16 +107,20 @@ class ProductController extends BaseController {
 	public function addToCart($productCode) {
         // get the product details
 		$product = $this->productModel->getProduct($productCode);
-		$qty = $this->request->getPost('quantityPurchased');
-		$customerNumber = $this-session;
+		$qty = $this->request->getPost('quantitytPurchased');
+		// default qty to 1 if left empty on submission
+		if(!$qty){
+			$qty = 1;
+		}
+
 		$data = [
-			'customerNumber' => $customerNumber,
 			'productCode' => $product['productCode'],
 			'price' => $product['buyPrice'],
 			'qty' => $qty,
 			'productName' => $product['productName'],
 			'sessionId' => $this->session->session_id
 		];
+
 		// call stored procedure to add to cart
 		$query = $this->shoppingCartModel->addToCart($data);
 
@@ -129,14 +133,26 @@ class ProductController extends BaseController {
     }//end addToCart
 	
 ////////////////////////////////////////////////////////////////////////////////////////////////	
-
-////////////////////////////////////////////////////////////////////////////////////////////////
     /*
 	*function called when the user wants to view their cart
 	*/
 	public function viewCart(){
-		
-
+		// get the sesseion id
+		$sessionId = session_id();
+		// Call model method to get cart
+		$CartDetails = $this->shoppingCartModel->getCartDetails($sessionId);
+		// if not null, return the view with the data
+		if($CartDetails->getNumRows() > 0){
+			$NumberofItems = $this->shoppingCartModel->getNoItemsinCart($sessionId)->getRowArray();
+			$CartValue = $this->shoppingCartModel->getCartValue($sessionId)->getRowArray();
+			echo view('product/viewCart', ['CartDetails'=>$CartDetails->getResultArray(), 
+												'NumberofItems' => $NumberofItems['NumberofItems'],
+														'CartValue' => $CartValue['cartValue']			
+											]);
+		} else {
+			echo view('msgpage', ['msg' => 'Your Cart is Empty :(']);
+		}
+	
 	}//end viewCart
 	
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -175,9 +191,9 @@ class ProductController extends BaseController {
 ////////////////////////////////////////////////////////////////////////////////////////////////
 	//When the cart image is selected get product details and add it to the cart - display the cart after adding
 	 public function SelectandAddToCart($productCode) {
-	 
- 
-		 
+		// Call method to add to cart, pass the product code
+		$this->addToCart($productCode);
+
      }//end SelectandAddToCart
 	 	
 ////////////////////////////////////////////////////////////////////////////////////////////////
